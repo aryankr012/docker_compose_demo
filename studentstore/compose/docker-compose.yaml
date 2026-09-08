@@ -1,0 +1,44 @@
+---
+version: '3'
+services:
+  mongo:
+    container_name: mongo
+    image: mongo:${MONGODB_IMG_TAG}
+    ports:
+      - 27018:27017
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: ${MONGODB_INIT_UNAME}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGODB_INIT_PASSWD}
+    networks:
+      - studentstore
+  studentapp:
+    container_name: student-app
+    build:
+      context: ../
+      dockerfile: Dockerfile
+      args:
+        TAG: compose-v1
+    environment:
+      MONGODB_HOST: mongo
+      MONGODB_PORT: 27017
+      MONGODB_DBNAME: ${MONGODB_DBNAME}
+      MONGODB_USERNAME: ${MONGODB_INIT_UNAME}
+      MONGODB_PASSWORD: ${MONGODB_INIT_PASSWD}
+    ports:
+      - 8083:8082
+    volumes:
+      - data-volume:/app/data
+    networks:
+      - studentstore
+    depends_on:
+      - mongo
+    links:
+      - mongo
+networks:
+  studentstore:
+    driver: bridge
+volumes:
+  data-volume:
+    driver: local
+    labels:
+      createdby: docker-compose-file
